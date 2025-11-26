@@ -12,10 +12,13 @@ class ContactListScreen extends StatefulWidget {
 class _ContactListScreenState extends State<ContactListScreen> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final GlobalKey _alphabetKey = GlobalKey();
   List<Contact> _contacts = [];
   List<Contact> _filteredContacts = [];
   Map<String, GlobalKey> _letterKeys = {};
   List<String> _availableLetters = [];
+  String? _currentLetter;
+  OverlayEntry? _overlayEntry;
 
   @override
   void initState() {
@@ -105,8 +108,55 @@ class _ContactListScreenState extends State<ContactListScreen> {
     });
   }
 
+  void _showLetterOverlay(String letter) {
+    _removeLetterOverlay();
+    
+    _currentLetter = letter;
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Center(
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              color: const Color(0xFF22D3EE),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Text(
+                letter,
+                style: const TextStyle(
+                  fontSize: 48,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_overlayEntry!);
+  }
+
+  void _removeLetterOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+    _currentLetter = null;
+  }
+
   @override
   void dispose() {
+    _removeLetterOverlay();
     _searchController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -294,36 +344,77 @@ class _ContactListScreenState extends State<ContactListScreen> {
   }
 
   Widget _buildAlphabetNavigator() {
-    return Container(
-      width: 24,
-      alignment: Alignment.center,
-      child: ListView.builder(
-        shrinkWrap: true,
-        itemCount: 26,
-        itemBuilder: (context, index) {
-          final letter = String.fromCharCode(65 + index); // A-Z
-          final isAvailable = _availableLetters.contains(letter);
-          
-          return GestureDetector(
-            onTap: isAvailable ? () => _scrollToLetter(letter) : null,
-            child: Container(
-              height: 20,
-              alignment: Alignment.center,
-              child: Text(
-                letter,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: isAvailable ? FontWeight.bold : FontWeight.normal,
-                  color: isAvailable 
-                      ? const Color(0xFF22D3EE)
-                      : const Color(0xFFCBD5E1),
+    return GestureDetector(
+      key: _alphabetKey,
+      onVerticalDragStart: (details) {
+        _handleAlphabetTouch(details.globalPosition);
+      },
+      onVerticalDragUpdate: (details) {
+        _handleAlphabetTouch(details.globalPosition);
+      },
+      onVerticalDragEnd: (_) {
+        _removeLetterOverlay();
+      },
+      child: Container(
+        width: 32,
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(26, (index) {
+            final letter = String.fromCharCode(65 + index); // A-Z
+            final isAvailable = _availableLetters.contains(letter);
+            
+            return GestureDetector(
+              onTap: isAvailable ? () => _scrollToLetter(letter) : null,
+              child: Container(
+                height: 16,
+                width: 32,
+                alignment: Alignment.center,
+                child: Text(
+                  letter,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: isAvailable ? FontWeight.bold : FontWeight.normal,
+                    color: isAvailable 
+                        ? const Color(0xFF22D3EE)
+                        : const Color(0xFFCBD5E1),
+                    height: 1.0,
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          }),
+        ),
       ),
     );
+  }
+
+  void _handleAlphabetTouch(Offset globalPosition) {
+    final RenderBox? box = _alphabetKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null) return;
+    
+    final localPosition = box.globalToLocal(globalPosition);
+    final padding = 8.0; // vertical padding
+    final adjustedY = localPosition.dy - padding;
+    
+    // Calculate which letter is being touched based on position
+    // Total height = 26 letters * 16 height per letter
+    final totalHeight = 26 * 16.0;
+    
+    if (adjustedY >= 0 && adjustedY <= totalHeight) {
+      final itemIndex = (adjustedY / 16).floor();
+      
+      if (itemIndex >= 0 && itemIndex < 26) {
+        final touchedLetter = String.fromCharCode(65 + itemIndex);
+        if (_availableLetters.contains(touchedLetter)) {
+          if (touchedLetter != _currentLetter) {
+            _showLetterOverlay(touchedLetter);
+            _scrollToLetter(touchedLetter);
+          }
+        }
+      }
+    }
   }
 
   Widget _buildContactCard(Contact contact) {
