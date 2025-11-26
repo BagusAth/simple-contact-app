@@ -159,47 +159,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
               color: Color(0xFF0F172A),
             ),
           ),
-          const SizedBox(height: 4),
-          _buildEditableText(controller: _jobTitleController, isPrimary: true),
-          const SizedBox(height: 2),
-          _buildEditableText(controller: _companyController, isPrimary: false),
         ],
-      ),
-    );
-  }
-
-  Widget _buildEditableText({
-    required TextEditingController controller,
-    required bool isPrimary,
-  }) {
-    if (_isEditing) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: TextField(
-          controller: controller,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: isPrimary ? 18 : 16,
-            fontWeight: isPrimary ? FontWeight.w500 : FontWeight.w400,
-            color: const Color(0xFF0F172A),
-          ),
-          decoration: const InputDecoration(
-            isDense: true,
-            border: UnderlineInputBorder(borderSide: BorderSide.none),
-            filled: true,
-            fillColor: Colors.white,
-          ),
-        ),
-      );
-    }
-
-    return Text(
-      controller.text,
-      textAlign: TextAlign.center,
-      style: TextStyle(
-        fontSize: isPrimary ? 18 : 16,
-        fontWeight: isPrimary ? FontWeight.w500 : FontWeight.w400,
-        color: const Color(0xFF64748B),
       ),
     );
   }
@@ -253,6 +213,18 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          _InfoField(
+            label: 'Jabatan',
+            controller: _jobTitleController,
+            isEditing: _isEditing,
+          ),
+          const Divider(height: 32),
+          _InfoField(
+            label: 'Perusahaan',
+            controller: _companyController,
+            isEditing: _isEditing,
+          ),
+          const Divider(height: 32),
           _InfoField(
             label: 'Telepon',
             controller: _phoneController,
@@ -460,8 +432,7 @@ class _QuickActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color accent = activeColor ?? const Color(0xFF2563EB);
-    final Color iconColor =
-      isActive ? accent : const Color(0xFF475569);
+    final Color iconColor = isActive ? accent : const Color(0xFF475569);
     final textStyle = TextStyle(
       fontSize: 13,
       color: iconColor,
