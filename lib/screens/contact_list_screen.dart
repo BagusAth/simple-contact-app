@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/contact.dart';
+import 'contact_detail.dart';
 
 class ContactListScreen extends StatefulWidget {
   const ContactListScreen({super.key});
@@ -344,7 +345,11 @@ class _ContactListScreenState extends State<ContactListScreen> {
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onTap: () {
-            // TODO: Navigate to contact detail page
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => ContactDetailScreen(contact: contact),
+              ),
+            );
           },
           child: Padding(
             padding: const EdgeInsets.all(16),

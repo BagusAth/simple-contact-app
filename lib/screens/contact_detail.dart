@@ -234,6 +234,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
       ),
       padding: const EdgeInsets.all(20),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _InfoField(
             label: 'Telepon',
