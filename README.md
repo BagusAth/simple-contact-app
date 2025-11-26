@@ -36,7 +36,8 @@ Menambah kontak → Menampilkan daftar → Membuka detail dan mengedit
 - **Framework**: Flutter
 - **Bahasa**: Dart
 - **State Management**: Provider/setState (dapat disesuaikan)
-- **Storage**: Local storage (SharedPreferences/SQLite)
+- **Storage**: Firebase Firestore
+- **Backend**: Firebase (Authentication, Cloud Firestore, Storage)
 
 ## Instalasi
 
