@@ -81,7 +81,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                   isEditing: _isEditing,
                   onBack: () => Navigator.of(context).maybePop(),
                   onEdit: _toggleEditing,
-                  onMore: _showMoreOptions,
+                  onDelete: _confirmDelete,
                 ),
                 Expanded(
                   child: SingleChildScrollView(
@@ -330,31 +330,31 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
     ).showSnackBar(const SnackBar(content: Text('Perubahan kontak disimpan.')));
   }
 
-  void _showMoreOptions() {
+  void _confirmDelete() {
     FocusScope.of(context).unfocus();
-    showModalBottomSheet<void>(
+    showDialog<void>(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
       builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.share_outlined),
-                title: const Text('Bagikan kontak'),
-                onTap: () => Navigator.of(context).pop(),
-              ),
-              ListTile(
-                leading: const Icon(Icons.delete_outline, color: Colors.red),
-                title: const Text('Hapus kontak'),
-                onTap: () => Navigator.of(context).pop(),
-              ),
-              const SizedBox(height: 12),
-            ],
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
+          title: const Text('Hapus kontak?'),
+          content: Text('Kontak ${_contact.name} akan dihapus.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Batal'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).maybePop();
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Hapus'),
+            ),
+          ],
         );
       },
     );
@@ -373,14 +373,14 @@ class _Header extends StatelessWidget {
     required this.isEditing,
     required this.onBack,
     required this.onEdit,
-    required this.onMore,
+    required this.onDelete,
   });
 
   final String title;
   final bool isEditing;
   final VoidCallback onBack;
   final VoidCallback onEdit;
-  final VoidCallback onMore;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -407,7 +407,10 @@ class _Header extends StatelessWidget {
             onPressed: onEdit,
             icon: Icon(isEditing ? Icons.close : Icons.edit_outlined),
           ),
-          IconButton(onPressed: onMore, icon: const Icon(Icons.more_vert)),
+          IconButton(
+            onPressed: onDelete,
+            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+          ),
         ],
       ),
     );
