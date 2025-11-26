@@ -26,6 +26,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
   late final TextEditingController _notesController;
 
   bool _isEditing = false;
+  bool _isFavorite = false;
 
   @override
   void initState() {
@@ -158,47 +159,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
               color: Color(0xFF0F172A),
             ),
           ),
-          const SizedBox(height: 4),
-          _buildEditableText(controller: _jobTitleController, isPrimary: true),
-          const SizedBox(height: 2),
-          _buildEditableText(controller: _companyController, isPrimary: false),
         ],
-      ),
-    );
-  }
-
-  Widget _buildEditableText({
-    required TextEditingController controller,
-    required bool isPrimary,
-  }) {
-    if (_isEditing) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: TextField(
-          controller: controller,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: isPrimary ? 18 : 16,
-            fontWeight: isPrimary ? FontWeight.w500 : FontWeight.w400,
-            color: const Color(0xFF0F172A),
-          ),
-          decoration: const InputDecoration(
-            isDense: true,
-            border: UnderlineInputBorder(borderSide: BorderSide.none),
-            filled: true,
-            fillColor: Colors.white,
-          ),
-        ),
-      );
-    }
-
-    return Text(
-      controller.text,
-      textAlign: TextAlign.center,
-      style: TextStyle(
-        fontSize: isPrimary ? 18 : 16,
-        fontWeight: isPrimary ? FontWeight.w500 : FontWeight.w400,
-        color: const Color(0xFF64748B),
       ),
     );
   }
@@ -207,12 +168,28 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
-        children: const [
-          _QuickActionButton(icon: Icons.call_outlined, label: 'Telepon'),
-          SizedBox(width: 12),
-          _QuickActionButton(icon: Icons.chat_bubble_outline, label: 'Pesan'),
-          SizedBox(width: 12),
-          _QuickActionButton(icon: Icons.star_border, label: 'Favorit'),
+        children: [
+          _QuickActionButton(
+            icon: Icons.call_outlined,
+            label: 'Telepon',
+            onTap: () => _handleQuickAction('Telepon'),
+          ),
+          const SizedBox(width: 12),
+          _QuickActionButton(
+            icon: Icons.chat_bubble_outline,
+            label: 'Pesan',
+            onTap: () => _handleQuickAction('Pesan'),
+          ),
+          const SizedBox(width: 12),
+          _QuickActionButton(
+            icon: _isFavorite ? Icons.star : Icons.star_border,
+            label: 'Favorit',
+            isActive: _isFavorite,
+            activeColor: const Color(0xFF22D3EE),
+            onTap: () {
+              setState(() => _isFavorite = !_isFavorite);
+            },
+          ),
         ],
       ),
     );
@@ -236,6 +213,18 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          _InfoField(
+            label: 'Jabatan',
+            controller: _jobTitleController,
+            isEditing: _isEditing,
+          ),
+          const Divider(height: 32),
+          _InfoField(
+            label: 'Perusahaan',
+            controller: _companyController,
+            isEditing: _isEditing,
+          ),
+          const Divider(height: 32),
           _InfoField(
             label: 'Telepon',
             controller: _phoneController,
@@ -370,6 +359,12 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
       },
     );
   }
+
+  void _handleQuickAction(String action) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Aksi $action belum tersedia.')));
+  }
 }
 
 class _Header extends StatelessWidget {
@@ -420,37 +415,60 @@ class _Header extends StatelessWidget {
 }
 
 class _QuickActionButton extends StatelessWidget {
-  const _QuickActionButton({required this.icon, required this.label});
+  const _QuickActionButton({
+    required this.icon,
+    required this.label,
+    this.onTap,
+    this.isActive = false,
+    this.activeColor,
+  });
 
   final IconData icon;
   final String label;
+  final VoidCallback? onTap;
+  final bool isActive;
+  final Color? activeColor;
 
   @override
   Widget build(BuildContext context) {
+    final Color accent = activeColor ?? const Color(0xFF2563EB);
+    final Color iconColor = isActive ? accent : const Color(0xFF475569);
+    final textStyle = TextStyle(
+      fontSize: 13,
+      color: iconColor,
+      fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+    );
+
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            decoration: BoxDecoration(
+              color: isActive ? accent.withOpacity(0.12) : Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isActive ? accent : const Color(0xFFE2E8F0),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: const Color(0xFF2563EB)),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 13, color: Color(0xFF475569)),
+            child: Column(
+              children: [
+                Icon(icon, color: iconColor, size: 22),
+                const SizedBox(height: 6),
+                Text(label, style: textStyle),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
