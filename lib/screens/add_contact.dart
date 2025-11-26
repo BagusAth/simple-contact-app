@@ -1,4 +1,7 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/contact.dart';
 import '../services/firebase_service.dart';
 
@@ -18,7 +21,9 @@ class _AddContactScreenState extends State<AddContactScreen> {
   final _addressController = TextEditingController();
   final _noteController = TextEditingController();
   final _firebaseService = FirebaseService();
+  final _imagePicker = ImagePicker();
   bool _isLoading = false;
+  String? _photoBase64;
 
   @override
   void dispose() {
@@ -29,6 +34,95 @@ class _AddContactScreenState extends State<AddContactScreen> {
     _addressController.dispose();
     _noteController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        final bytes = await image.readAsBytes();
+        setState(() {
+          _photoBase64 = base64Encode(bytes);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error picking image: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _takePhoto() async {
+    try {
+      final XFile? photo = await _imagePicker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 85,
+      );
+
+      if (photo != null) {
+        final bytes = await photo.readAsBytes();
+        setState(() {
+          _photoBase64 = base64Encode(bytes);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error taking photo: $e')),
+        );
+      }
+    }
+  }
+
+  void _showPhotoOptions() {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library, color: Color(0xFF22D3EE)),
+                title: const Text('Choose from Gallery'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt, color: Color(0xFF22D3EE)),
+                title: const Text('Take a Photo'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _takePhoto();
+                },
+              ),
+              if (_photoBase64 != null)
+                ListTile(
+                  leading: const Icon(Icons.delete, color: Colors.red),
+                  title: const Text('Remove Photo'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    setState(() {
+                      _photoBase64 = null;
+                    });
+                  },
+                ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _saveContact() async {
@@ -47,6 +141,7 @@ class _AddContactScreenState extends State<AddContactScreen> {
           email: _emailController.text,
           address: _addressController.text,
           notes: _noteController.text,
+          photoBase64: _photoBase64,
         );
 
         await _firebaseService.addContact(contact);
@@ -116,34 +211,40 @@ class _AddContactScreenState extends State<AddContactScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 20),
-              // Avatar Circle with Initial
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF22D3EE),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    _getInitials(),
-                    style: const TextStyle(
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+              // Avatar Circle with Photo or Initial
+              GestureDetector(
+                onTap: _showPhotoOptions,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF22D3EE),
+                    shape: BoxShape.circle,
+                    image: _photoBase64 != null
+                        ? DecorationImage(
+                            image: MemoryImage(base64Decode(_photoBase64!)),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
                   ),
+                  child: _photoBase64 == null
+                      ? Center(
+                          child: Text(
+                            _getInitials(),
+                            style: const TextStyle(
+                              fontSize: 48,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        )
+                      : null,
                 ),
               ),
               const SizedBox(height: 16),
               // Add Photo Button
               GestureDetector(
-                onTap: () {
-                  // TODO: Add photo functionality
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Photo feature coming soon')),
-                  );
-                },
+                onTap: _showPhotoOptions,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
@@ -153,9 +254,23 @@ class _AddContactScreenState extends State<AddContactScreen> {
                     color: Colors.grey[300],
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Text(
-                    'Add Photo',
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _photoBase64 == null ? Icons.add_a_photo : Icons.edit,
+                        size: 16,
+                        color: Colors.grey[700],
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _photoBase64 == null ? 'Add Photo' : 'Change Photo',
+                        style: TextStyle(
+                          color: Colors.grey[700],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

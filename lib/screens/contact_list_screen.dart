@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
@@ -456,24 +458,34 @@ class _ContactListScreenState extends State<ContactListScreen> {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                // Avatar with initials
+                // Avatar with photo or initials
                 Container(
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
                     color: const Color(0xFF22D3EE).withOpacity(0.2),
                     shape: BoxShape.circle,
+                    image: contact.photoBase64 != null
+                        ? DecorationImage(
+                            image: MemoryImage(
+                              base64Decode(contact.photoBase64!),
+                            ),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
                   ),
-                  child: Center(
-                    child: Text(
-                      contact.getInitials(),
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF22D3EE),
-                      ),
-                    ),
-                  ),
+                  child: contact.photoBase64 == null
+                      ? Center(
+                          child: Text(
+                            contact.getInitials(),
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF22D3EE),
+                            ),
+                          ),
+                        )
+                      : null,
                 ),
                 const SizedBox(width: 16),
                 // Contact Info

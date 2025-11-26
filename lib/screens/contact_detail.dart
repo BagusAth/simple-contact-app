@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import '../models/contact.dart';
@@ -79,8 +81,8 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                       children: [
                         _buildHeroSection(),
                         const SizedBox(height: 16),
-                        _buildQuickActions(),
-                        const SizedBox(height: 24),
+                        if (!_isEditing) _buildQuickActions(),
+                        if (!_isEditing) const SizedBox(height: 24),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: _buildInfoCard(),
@@ -119,6 +121,14 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
               shape: BoxShape.circle,
               color: const Color(0xFF22D3EE).withOpacity(0.15),
               border: Border.all(color: Colors.white, width: 4),
+              image: _contact.photoBase64 != null
+                  ? DecorationImage(
+                      image: MemoryImage(
+                        base64Decode(_contact.photoBase64!),
+                      ),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.08),
@@ -127,16 +137,18 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                 ),
               ],
             ),
-            child: Center(
-              child: Text(
-                _contact.getInitials(),
-                style: const TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF22D3EE),
-                ),
-              ),
-            ),
+            child: _contact.photoBase64 == null
+                ? Center(
+                    child: Text(
+                      _contact.getInitials(),
+                      style: const TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF22D3EE),
+                      ),
+                    ),
+                  )
+                : null,
           ),
           const SizedBox(height: 16),
           Text(

@@ -8,6 +8,7 @@ class Contact {
   final String address;
   final String notes;
   final bool isFavorite;
+  final String? photoBase64;
 
   const Contact({
     this.id = '',
@@ -19,6 +20,7 @@ class Contact {
     this.address = '',
     this.notes = '',
     this.isFavorite = false,
+    this.photoBase64,
   });
 
   Contact copyWith({
@@ -31,6 +33,7 @@ class Contact {
     String? address,
     String? notes,
     bool? isFavorite,
+    String? photoBase64,
   }) {
     return Contact(
       id: id ?? this.id,
@@ -42,6 +45,7 @@ class Contact {
       address: address ?? this.address,
       notes: notes ?? this.notes,
       isFavorite: isFavorite ?? this.isFavorite,
+      photoBase64: photoBase64 ?? this.photoBase64,
     );
   }
 
@@ -69,6 +73,7 @@ class Contact {
       'address': address,
       'notes': notes,
       'isFavorite': isFavorite,
+      'photoBase64': photoBase64,
     };
   }
 
@@ -84,6 +89,7 @@ class Contact {
       address: (map['address'] ?? '') as String,
       notes: (map['notes'] ?? '') as String,
       isFavorite: (map['isFavorite'] ?? false) as bool,
+      photoBase64: map['photoBase64'] as String?,
     );
   }
 }
