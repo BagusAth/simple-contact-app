@@ -322,10 +322,12 @@ class _ContactListScreenState extends State<ContactListScreen> {
                         ),
                         // Alphabet Navigator
                         Positioned(
-                          right: 4,
-                          top: 0,
-                          bottom: 0,
-                          child: _buildAlphabetNavigator(),
+                          right: 8,
+                          top: 20,
+                          bottom: 20,
+                          child: Center(
+                            child: _buildAlphabetNavigator(),
+                          ),
                         ),
                       ],
                     ),
@@ -356,9 +358,13 @@ class _ContactListScreenState extends State<ContactListScreen> {
         _removeLetterOverlay();
       },
       child: Container(
-        width: 32,
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        width: 40,
+        padding: const EdgeInsets.symmetric(vertical: 12),
         alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.8),
+          borderRadius: BorderRadius.circular(20),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: List.generate(26, (index) {
@@ -368,13 +374,13 @@ class _ContactListScreenState extends State<ContactListScreen> {
             return GestureDetector(
               onTap: isAvailable ? () => _scrollToLetter(letter) : null,
               child: Container(
-                height: 16,
-                width: 32,
+                height: 20,
+                width: 40,
                 alignment: Alignment.center,
                 child: Text(
                   letter,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 13,
                     fontWeight: isAvailable ? FontWeight.bold : FontWeight.normal,
                     color: isAvailable 
                         ? const Color(0xFF22D3EE)
@@ -395,15 +401,15 @@ class _ContactListScreenState extends State<ContactListScreen> {
     if (box == null) return;
     
     final localPosition = box.globalToLocal(globalPosition);
-    final padding = 8.0; // vertical padding
+    final padding = 12.0; // vertical padding
     final adjustedY = localPosition.dy - padding;
     
     // Calculate which letter is being touched based on position
-    // Total height = 26 letters * 16 height per letter
-    final totalHeight = 26 * 16.0;
+    // Total height = 26 letters * 20 height per letter
+    final totalHeight = 26 * 20.0;
     
     if (adjustedY >= 0 && adjustedY <= totalHeight) {
-      final itemIndex = (adjustedY / 16).floor();
+      final itemIndex = (adjustedY / 20).floor();
       
       if (itemIndex >= 0 && itemIndex < 26) {
         final touchedLetter = String.fromCharCode(65 + itemIndex);
