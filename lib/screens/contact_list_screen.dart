@@ -34,7 +34,6 @@ class _ContactListScreenState extends State<ContactListScreen> {
     _subscribeToContacts();
   }
 
-<<<<<<< HEAD
   void _subscribeToContacts() {
     _contactSubscription = _firebaseService.watchContacts().listen(
       (contacts) {
@@ -57,48 +56,6 @@ class _ContactListScreenState extends State<ContactListScreen> {
         );
       },
     );
-=======
-  void _loadSampleContacts() {
-    _contacts = [
-      Contact(
-        name: 'Ahmad Rizki',
-        phone: '+62 812-3456-7890',
-        email: 'ahmad.rizki@email.com',
-      ),
-      Contact(
-        name: 'Siti Nurhaliza',
-        phone: '+62 813-4567-8901',
-        email: 'siti.nur@email.com',
-      ),
-      Contact(
-        name: 'Susanto Nurbahrudin',
-        phone: '+62 811-9876-7981',
-        email: 'susanto.nurbahrudin@email.com',
-      ),
-      Contact(
-        name: 'Budi Santoso',
-        phone: '+62 814-5678-9012',
-        email: 'budi.santoso@email.com',
-      ),
-      Contact(
-        name: 'Dewi Lestari',
-        phone: '+62 815-6789-0123',
-        email: 'dewi.lestari@email.com',
-      ),
-      Contact(
-        name: 'Eko Prasetyo',
-        phone: '+62 816-7890-1234',
-        email: 'eko.prasetyo@email.com',
-      ),
-      Contact(
-        name: 'Fitri Handayani',
-        phone: '+62 817-8901-2345',
-        email: 'fitri.handayani@email.com',
-      ),
-    ];
-    // Sort contacts by name
-    _contacts.sort((a, b) => a.name.compareTo(b.name));
->>>>>>> fbc6bf042d7638688bfba91ea75aafa723629fbf
   }
 
   void _updateAvailableLetters() {
@@ -306,79 +263,9 @@ class _ContactListScreenState extends State<ContactListScreen> {
             ),
             // Contact List with Alphabet Navigator
             Expanded(
-<<<<<<< HEAD
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _buildContactList(),
-=======
-              child: _filteredContacts.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.person_search,
-                            size: 64,
-                            color: Colors.grey[300],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Tidak ada kontak ditemukan',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[400],
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : Stack(
-                      children: [
-                        ListView.builder(
-                          controller: _scrollController,
-                          padding: const EdgeInsets.only(left: 24, right: 48, bottom: 24),
-                          itemCount: _filteredContacts.length,
-                          itemBuilder: (context, index) {
-                            final contact = _filteredContacts[index];
-                            final currentLetter = contact.name[0].toUpperCase();
-                            final previousLetter = index > 0
-                                ? _filteredContacts[index - 1].name[0].toUpperCase()
-                                : '';
-                            final showHeader = currentLetter != previousLetter;
-
-                            return Column(
-                              key: showHeader ? _letterKeys[currentLetter] : null,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (showHeader)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 8, bottom: 12),
-                                    child: Text(
-                                      currentLetter,
-                                      style: const TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF22D3EE),
-                                      ),
-                                    ),
-                                  ),
-                                _buildContactCard(contact),
-                              ],
-                            );
-                          },
-                        ),
-                        // Alphabet Navigator
-                        Positioned(
-                          right: 8,
-                          top: 20,
-                          bottom: 20,
-                          child: Center(
-                            child: _buildAlphabetNavigator(),
-                          ),
-                        ),
-                      ],
-                    ),
->>>>>>> fbc6bf042d7638688bfba91ea75aafa723629fbf
             ),
           ],
         ),
@@ -470,12 +357,12 @@ class _ContactListScreenState extends State<ContactListScreen> {
         _removeLetterOverlay();
       },
       child: Container(
-        width: 40,
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        width: 32,
+        padding: const EdgeInsets.symmetric(vertical: 8),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.8),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -486,23 +373,17 @@ class _ContactListScreenState extends State<ContactListScreen> {
             return GestureDetector(
               onTap: isAvailable ? () => _scrollToLetter(letter) : null,
               child: Container(
-                height: 20,
-                width: 40,
+                height: 16,
+                width: 32,
                 alignment: Alignment.center,
                 child: Text(
                   letter,
                   style: TextStyle(
-<<<<<<< HEAD
                     fontSize: 11,
                     fontWeight: isAvailable
                         ? FontWeight.bold
                         : FontWeight.normal,
                     color: isAvailable
-=======
-                    fontSize: 13,
-                    fontWeight: isAvailable ? FontWeight.bold : FontWeight.normal,
-                    color: isAvailable 
->>>>>>> fbc6bf042d7638688bfba91ea75aafa723629fbf
                         ? const Color(0xFF22D3EE)
                         : const Color(0xFFCBD5E1),
                     height: 1.0,
@@ -526,21 +407,11 @@ class _ContactListScreenState extends State<ContactListScreen> {
     final adjustedY = localPosition.dy - padding;
 
     // Calculate which letter is being touched based on position
-<<<<<<< HEAD
     // Total height = 26 letters * 16 height per letter
     final totalHeight = 26 * 16.0;
 
     if (adjustedY >= 0 && adjustedY <= totalHeight) {
       final itemIndex = (adjustedY / 16).floor();
-
-=======
-    // Total height = 26 letters * 20 height per letter
-    final totalHeight = 26 * 20.0;
-    
-    if (adjustedY >= 0 && adjustedY <= totalHeight) {
-      final itemIndex = (adjustedY / 20).floor();
-      
->>>>>>> fbc6bf042d7638688bfba91ea75aafa723629fbf
       if (itemIndex >= 0 && itemIndex < 26) {
         final touchedLetter = String.fromCharCode(65 + itemIndex);
         if (_availableLetters.contains(touchedLetter)) {
