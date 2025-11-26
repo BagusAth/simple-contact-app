@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/contact.dart';
+import '../services/firebase_service.dart';
 
 class ContactDetailScreen extends StatefulWidget {
   const ContactDetailScreen({super.key, this.contact});
@@ -12,14 +13,11 @@ class ContactDetailScreen extends StatefulWidget {
 }
 
 class _ContactDetailScreenState extends State<ContactDetailScreen> {
+  final FirebaseService _firebaseService = FirebaseService();
   late Contact _contact;
-  late String _jobTitle;
-  late String _company;
   late String _address;
   late String _notes;
 
-  late final TextEditingController _jobTitleController;
-  late final TextEditingController _companyController;
   late final TextEditingController _phoneController;
   late final TextEditingController _emailController;
   late final TextEditingController _addressController;
@@ -33,20 +31,12 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
     super.initState();
     _contact =
         widget.contact ??
-        Contact(
-          name: 'Budi Santoso',
-          phone: '+62 812 3456 7890',
-          email: 'budi.santoso@majubersama.com',
-        );
+        const Contact(name: 'Kontak Baru', phone: '-', email: '-');
 
-    _jobTitle = 'Manajer Proyek Senior';
-    _company = 'PT. Maju Bersama Jaya';
-    _address = 'Jl. Merdeka No. 10, Jakarta Pusat, DKI Jakarta, 10120';
-    _notes =
-        'Kontak penting untuk proyek "Cahaya Nusantara". Selalu ramah dan responsif. Preferensi komunikasi via WhatsApp atau email.';
+    _address = _contact.address;
+    _notes = _contact.notes;
+    _isFavorite = _contact.isFavorite;
 
-    _jobTitleController = TextEditingController(text: _jobTitle);
-    _companyController = TextEditingController(text: _company);
     _phoneController = TextEditingController(text: _contact.phone);
     _emailController = TextEditingController(text: _contact.email);
     _addressController = TextEditingController(text: _address);
@@ -55,8 +45,6 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
 
   @override
   void dispose() {
-    _jobTitleController.dispose();
-    _companyController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
     _addressController.dispose();
@@ -186,9 +174,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
             label: 'Favorit',
             isActive: _isFavorite,
             activeColor: const Color(0xFF22D3EE),
-            onTap: () {
-              setState(() => _isFavorite = !_isFavorite);
-            },
+            onTap: _toggleFavorite,
           ),
         ],
       ),
@@ -213,18 +199,6 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _InfoField(
-            label: 'Jabatan',
-            controller: _jobTitleController,
-            isEditing: _isEditing,
-          ),
-          const Divider(height: 32),
-          _InfoField(
-            label: 'Perusahaan',
-            controller: _companyController,
-            isEditing: _isEditing,
-          ),
-          const Divider(height: 32),
           _InfoField(
             label: 'Telepon',
             controller: _phoneController,
@@ -276,7 +250,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: ElevatedButton(
-              onPressed: _handleSave,
+              onPressed: () => _handleSave(),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 backgroundColor: const Color(0xFF2563EB),
@@ -301,29 +275,32 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
 
   void _handleCancel() {
     setState(() {
-      _jobTitleController.text = _jobTitle;
-      _companyController.text = _company;
       _phoneController.text = _contact.phone;
       _emailController.text = _contact.email;
-      _addressController.text = _address;
-      _notesController.text = _notes;
+      _addressController.text = _contact.address;
+      _notesController.text = _contact.notes;
       _isEditing = false;
     });
   }
 
-  void _handleSave() {
+  Future<void> _handleSave() async {
+    final updated = _contact.copyWith(
+      phone: _phoneController.text.trim(),
+      email: _emailController.text.trim(),
+      address: _addressController.text.trim(),
+      notes: _notesController.text.trim(),
+    );
+
     setState(() {
-      _jobTitle = _jobTitleController.text.trim();
-      _company = _companyController.text.trim();
-      _contact = Contact(
-        name: _contact.name,
-        phone: _phoneController.text.trim(),
-        email: _emailController.text.trim(),
-      );
-      _address = _addressController.text.trim();
-      _notes = _notesController.text.trim();
+      _contact = updated;
+      _address = updated.address;
+      _notes = updated.notes;
       _isEditing = false;
     });
+
+    if (updated.id.isNotEmpty) {
+      await _firebaseService.updateContact(updated);
+    }
 
     ScaffoldMessenger.of(
       context,
@@ -349,6 +326,9 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
+                if (_contact.id.isNotEmpty) {
+                  _firebaseService.deleteContact(_contact.id);
+                }
                 Navigator.of(context).maybePop();
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -364,6 +344,17 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text('Aksi $action belum tersedia.')));
+  }
+
+  Future<void> _toggleFavorite() async {
+    final newValue = !_isFavorite;
+    setState(() {
+      _isFavorite = newValue;
+      _contact = _contact.copyWith(isFavorite: newValue);
+    });
+    if (_contact.id.isNotEmpty) {
+      await _firebaseService.updateFavorite(_contact.id, newValue);
+    }
   }
 }
 

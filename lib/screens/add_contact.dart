@@ -45,6 +45,8 @@ class _AddContactScreenState extends State<AddContactScreen> {
           name: fullName,
           phone: _phoneController.text,
           email: _emailController.text,
+          address: _addressController.text,
+          notes: _noteController.text,
         );
 
         await _firebaseService.addContact(contact);
@@ -92,27 +94,18 @@ class _AddContactScreenState extends State<AddContactScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text(
-            'Cancel',
-            style: TextStyle(color: Colors.blue, fontSize: 16),
-          ),
+        leading: IconButton(
+          onPressed: _isLoading ? null : () => Navigator.pop(context),
+          icon: const Icon(Icons.delete_outline),
+          color: Colors.redAccent,
+          tooltip: 'Batalkan',
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextButton(
-              onPressed: _isLoading ? null : _saveContact,
-              child: Text(
-                'Done',
-                style: TextStyle(
-                  color: _isLoading ? Colors.grey : Colors.green,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+          IconButton(
+            onPressed: _isLoading ? null : _saveContact,
+            icon: const Icon(Icons.check_circle_outline),
+            color: _isLoading ? Colors.grey : Colors.green,
+            tooltip: 'Simpan',
           ),
         ],
       ),

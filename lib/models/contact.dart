@@ -1,22 +1,89 @@
 class Contact {
+  final String id;
   final String name;
   final String phone;
   final String email;
+  final String jobTitle;
+  final String company;
+  final String address;
+  final String notes;
+  final bool isFavorite;
 
-  Contact({
+  const Contact({
+    this.id = '',
     required this.name,
     required this.phone,
     required this.email,
+    this.jobTitle = '',
+    this.company = '',
+    this.address = '',
+    this.notes = '',
+    this.isFavorite = false,
   });
+
+  Contact copyWith({
+    String? id,
+    String? name,
+    String? phone,
+    String? email,
+    String? jobTitle,
+    String? company,
+    String? address,
+    String? notes,
+    bool? isFavorite,
+  }) {
+    return Contact(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      phone: phone ?? this.phone,
+      email: email ?? this.email,
+      jobTitle: jobTitle ?? this.jobTitle,
+      company: company ?? this.company,
+      address: address ?? this.address,
+      notes: notes ?? this.notes,
+      isFavorite: isFavorite ?? this.isFavorite,
+    );
+  }
 
   // Get initials from name for avatar
   String getInitials() {
-    List<String> names = name.trim().split(' ');
-    if (names.length >= 2) {
-      return '${names[0][0]}${names[1][0]}'.toUpperCase();
-    } else if (names.isNotEmpty) {
-      return names[0].substring(0, names[0].length >= 2 ? 2 : 1).toUpperCase();
+    if (name.trim().isEmpty) {
+      return 'NA';
     }
-    return 'NA';
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return parts.first
+        .substring(0, parts.first.length >= 2 ? 2 : 1)
+        .toUpperCase();
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'phone': phone,
+      'email': email,
+      'jobTitle': jobTitle,
+      'company': company,
+      'address': address,
+      'notes': notes,
+      'isFavorite': isFavorite,
+    };
+  }
+
+  factory Contact.fromMap(Map<String, dynamic>? data, {String id = ''}) {
+    final map = data ?? <String, dynamic>{};
+    return Contact(
+      id: id,
+      name: (map['name'] ?? '') as String,
+      phone: (map['phone'] ?? '') as String,
+      email: (map['email'] ?? '') as String,
+      jobTitle: (map['jobTitle'] ?? '') as String,
+      company: (map['company'] ?? '') as String,
+      address: (map['address'] ?? '') as String,
+      notes: (map['notes'] ?? '') as String,
+      isFavorite: (map['isFavorite'] ?? false) as bool,
+    );
   }
 }
