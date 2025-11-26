@@ -10,14 +10,18 @@ class ContactListScreen extends StatefulWidget {
 
 class _ContactListScreenState extends State<ContactListScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   List<Contact> _contacts = [];
   List<Contact> _filteredContacts = [];
+  Map<String, GlobalKey> _letterKeys = {};
+  List<String> _availableLetters = [];
 
   @override
   void initState() {
     super.initState();
     _loadSampleContacts();
     _filteredContacts = _contacts;
+    _updateAvailableLetters();
   }
 
   void _loadSampleContacts() {
@@ -53,6 +57,35 @@ class _ContactListScreenState extends State<ContactListScreen> {
         email: 'fitri.handayani@email.com',
       ),
     ];
+    // Sort contacts by name
+    _contacts.sort((a, b) => a.name.compareTo(b.name));
+  }
+
+  void _updateAvailableLetters() {
+    Set<String> letters = {};
+    for (var contact in _filteredContacts) {
+      if (contact.name.isNotEmpty) {
+        letters.add(contact.name[0].toUpperCase());
+      }
+    }
+    _availableLetters = letters.toList()..sort();
+    
+    // Create keys for each letter
+    _letterKeys.clear();
+    for (var letter in _availableLetters) {
+      _letterKeys[letter] = GlobalKey();
+    }
+  }
+
+  void _scrollToLetter(String letter) {
+    final key = _letterKeys[letter];
+    if (key != null && key.currentContext != null) {
+      Scrollable.ensureVisible(
+        key.currentContext!,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 
   void _filterContacts(String query) {
@@ -67,12 +100,14 @@ class _ContactListScreenState extends State<ContactListScreen> {
                 contact.email.toLowerCase().contains(query.toLowerCase()))
             .toList();
       }
+      _updateAvailableLetters();
     });
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -176,7 +211,7 @@ class _ContactListScreenState extends State<ContactListScreen> {
                 ],
               ),
             ),
-            // Contact List
+            // Contact List with Alphabet Navigator
             Expanded(
               child: _filteredContacts.isEmpty
                   ? Center(
@@ -199,13 +234,49 @@ class _ContactListScreenState extends State<ContactListScreen> {
                         ],
                       ),
                     )
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      itemCount: _filteredContacts.length,
-                      itemBuilder: (context, index) {
-                        final contact = _filteredContacts[index];
-                        return _buildContactCard(contact);
-                      },
+                  : Stack(
+                      children: [
+                        ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.only(left: 24, right: 48, bottom: 24),
+                          itemCount: _filteredContacts.length,
+                          itemBuilder: (context, index) {
+                            final contact = _filteredContacts[index];
+                            final currentLetter = contact.name[0].toUpperCase();
+                            final previousLetter = index > 0
+                                ? _filteredContacts[index - 1].name[0].toUpperCase()
+                                : '';
+                            final showHeader = currentLetter != previousLetter;
+
+                            return Column(
+                              key: showHeader ? _letterKeys[currentLetter] : null,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (showHeader)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8, bottom: 12),
+                                    child: Text(
+                                      currentLetter,
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF22D3EE),
+                                      ),
+                                    ),
+                                  ),
+                                _buildContactCard(contact),
+                              ],
+                            );
+                          },
+                        ),
+                        // Alphabet Navigator
+                        Positioned(
+                          right: 4,
+                          top: 0,
+                          bottom: 0,
+                          child: _buildAlphabetNavigator(),
+                        ),
+                      ],
                     ),
             ),
           ],
@@ -217,6 +288,39 @@ class _ContactListScreenState extends State<ContactListScreen> {
         },
         backgroundColor: const Color(0xFF22D3EE),
         child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildAlphabetNavigator() {
+    return Container(
+      width: 24,
+      alignment: Alignment.center,
+      child: ListView.builder(
+        shrinkWrap: true,
+        itemCount: 26,
+        itemBuilder: (context, index) {
+          final letter = String.fromCharCode(65 + index); // A-Z
+          final isAvailable = _availableLetters.contains(letter);
+          
+          return GestureDetector(
+            onTap: isAvailable ? () => _scrollToLetter(letter) : null,
+            child: Container(
+              height: 20,
+              alignment: Alignment.center,
+              child: Text(
+                letter,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isAvailable ? FontWeight.bold : FontWeight.normal,
+                  color: isAvailable 
+                      ? const Color(0xFF22D3EE)
+                      : const Color(0xFFCBD5E1),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
