@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "324534581450",
+    "project_id": "kelompok3-buku-kontoak",
+    "storage_bucket": "kelompok3-buku-kontoak.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:324534581450:android:fca67c193e841a0d069c33",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCXgpCeNyN9SSn5FKb0_dyfkAmu0mSKhT8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
