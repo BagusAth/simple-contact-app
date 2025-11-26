@@ -41,6 +41,11 @@ class _ContactListScreenState extends State<ContactListScreen> {
         email: 'siti.nur@email.com',
       ),
       Contact(
+        name: 'Susanto Nurbahrudin',
+        phone: '+62 811-9876-7981',
+        email: 'susanto.nurbahrudin@email.com',
+      ),
+      Contact(
         name: 'Budi Santoso',
         phone: '+62 814-5678-9012',
         email: 'budi.santoso@email.com',
