@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/contact.dart';
+import '../services/firebase_service.dart';
+import 'add_contact_screen.dart';
 
 class ContactListScreen extends StatefulWidget {
   const ContactListScreen({super.key});
@@ -10,49 +12,14 @@ class ContactListScreen extends StatefulWidget {
 
 class _ContactListScreenState extends State<ContactListScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final FirebaseService _firebaseService = FirebaseService();
   List<Contact> _contacts = [];
   List<Contact> _filteredContacts = [];
 
   @override
   void initState() {
     super.initState();
-    _loadSampleContacts();
     _filteredContacts = _contacts;
-  }
-
-  void _loadSampleContacts() {
-    _contacts = [
-      Contact(
-        name: 'Ahmad Rizki',
-        phone: '+62 812-3456-7890',
-        email: 'ahmad.rizki@email.com',
-      ),
-      Contact(
-        name: 'Siti Nurhaliza',
-        phone: '+62 813-4567-8901',
-        email: 'siti.nur@email.com',
-      ),
-      Contact(
-        name: 'Budi Santoso',
-        phone: '+62 814-5678-9012',
-        email: 'budi.santoso@email.com',
-      ),
-      Contact(
-        name: 'Dewi Lestari',
-        phone: '+62 815-6789-0123',
-        email: 'dewi.lestari@email.com',
-      ),
-      Contact(
-        name: 'Eko Prasetyo',
-        phone: '+62 816-7890-1234',
-        email: 'eko.prasetyo@email.com',
-      ),
-      Contact(
-        name: 'Fitri Handayani',
-        phone: '+62 817-8901-2345',
-        email: 'fitri.handayani@email.com',
-      ),
-    ];
   }
 
   void _filterContacts(String query) {
@@ -176,10 +143,50 @@ class _ContactListScreenState extends State<ContactListScreen> {
                 ],
               ),
             ),
-            // Contact List
+            // Contact List with StreamBuilder
             Expanded(
-              child: _filteredContacts.isEmpty
-                  ? Center(
+              child: StreamBuilder<List<Contact>>(
+                stream: _firebaseService.getContactsStream(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Color(0xFF22D3EE),
+                        ),
+                      ),
+                    );
+                  }
+
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 64,
+                            color: Colors.red[300],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Terjadi kesalahan',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.red[400],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  final contacts = snapshot.data ?? [];
+                  _contacts = contacts;
+                  _filterContacts(_searchController.text);
+
+                  if (_filteredContacts.isEmpty) {
+                    return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -198,22 +205,31 @@ class _ContactListScreenState extends State<ContactListScreen> {
                           ),
                         ],
                       ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      itemCount: _filteredContacts.length,
-                      itemBuilder: (context, index) {
-                        final contact = _filteredContacts[index];
-                        return _buildContactCard(contact);
-                      },
-                    ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    itemCount: _filteredContacts.length,
+                    itemBuilder: (context, index) {
+                      final contact = _filteredContacts[index];
+                      return _buildContactCard(contact);
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: Navigate to add contact page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AddContactScreen(),
+            ),
+          );
         },
         backgroundColor: const Color(0xFF22D3EE),
         child: const Icon(Icons.add, color: Colors.white),
