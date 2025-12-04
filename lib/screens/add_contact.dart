@@ -53,9 +53,9 @@ class _AddContactScreenState extends State<AddContactScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error picking image: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
       }
     }
   }
@@ -77,9 +77,9 @@ class _AddContactScreenState extends State<AddContactScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error taking photo: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error taking photo: $e')));
       }
     }
   }
@@ -92,7 +92,10 @@ class _AddContactScreenState extends State<AddContactScreen> {
           child: Wrap(
             children: [
               ListTile(
-                leading: const Icon(Icons.photo_library, color: Color(0xFF22D3EE)),
+                leading: const Icon(
+                  Icons.photo_library,
+                  color: Color(0xFF22D3EE),
+                ),
                 title: const Text('Choose from Gallery'),
                 onTap: () {
                   Navigator.pop(context);
@@ -186,234 +189,339 @@ class _AddContactScreenState extends State<AddContactScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          onPressed: _isLoading ? null : () => Navigator.pop(context),
-          icon: const Icon(Icons.delete_outline),
-          color: Colors.redAccent,
-          tooltip: 'Batalkan',
-        ),
-        actions: [
-          IconButton(
-            onPressed: _isLoading ? null : _saveContact,
-            icon: const Icon(Icons.check_circle_outline),
-            color: _isLoading ? Colors.grey : Colors.green,
-            tooltip: 'Simpan',
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 20),
-              // Avatar Circle with Photo or Initial
-              GestureDetector(
-                onTap: _showPhotoOptions,
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF22D3EE),
-                    shape: BoxShape.circle,
-                    image: _photoBase64 != null
-                        ? DecorationImage(
-                            image: MemoryImage(base64Decode(_photoBase64!)),
-                            fit: BoxFit.cover,
-                          )
-                        : null,
-                  ),
-                  child: _photoBase64 == null
-                      ? Center(
-                          child: Text(
-                            _getInitials(),
-                            style: const TextStyle(
-                              fontSize: 48,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        )
-                      : null,
-                ),
-              ),
-              const SizedBox(height: 16),
-              // Add Photo Button
-              GestureDetector(
-                onTap: _showPhotoOptions,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        _photoBase64 == null ? Icons.add_a_photo : Icons.edit,
-                        size: 16,
-                        color: Colors.grey[700],
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _photoBase64 == null ? 'Add Photo' : 'Change Photo',
-                        style: TextStyle(
-                          color: Colors.grey[700],
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-              // Form
-              Form(
-                key: _formKey,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header
+            _buildHeader(),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(bottom: 24),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // First Name
-                    _buildTextField(
-                      controller: _firstNameController,
-                      label: 'First Name',
-                      hint: 'First Name',
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'First name cannot be empty';
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        setState(() {});
-                      },
+                    // Hero Section
+                    _buildHeroSection(),
+                    const SizedBox(height: 24),
+                    // Form Card
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: _buildInfoCard(),
                     ),
-                    const SizedBox(height: 12),
-                    // Last Name
-                    _buildTextField(
-                      controller: _lastNameController,
-                      label: 'Last Name',
-                      hint: 'Last Name',
-                      validator: (value) {
-                        return null; // Optional
-                      },
-                      onChanged: (value) {
-                        setState(() {});
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    // Phone
-                    _buildTextField(
-                      controller: _phoneController,
-                      label: 'Phone',
-                      hint: 'Add Phone',
-                      keyboardType: TextInputType.phone,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Phone cannot be empty';
-                        }
-                        if (value.length < 10) {
-                          return 'Phone must be at least 10 characters';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    // Email
-                    _buildTextField(
-                      controller: _emailController,
-                      label: 'Email',
-                      hint: 'Add Email',
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Email cannot be empty';
-                        }
-                        if (!value.contains('@')) {
-                          return 'Email must be valid';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    // Address (optional)
-                    _buildTextField(
-                      controller: _addressController,
-                      label: 'Address',
-                      hint: 'Address',
-                      validator: (value) {
-                        return null; // Optional
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    // Note (optional)
-                    _buildTextField(
-                      controller: _noteController,
-                      label: 'Note',
-                      hint: 'Add Note',
-                      maxLines: 4,
-                      validator: (value) {
-                        return null; // Optional
-                      },
-                    ),
+                    const SizedBox(height: 32),
+                    // Save Button
+                    _buildSaveButton(),
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildTextField({
-    required TextEditingController controller,
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: _isLoading ? null : () => Navigator.pop(context),
+            icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          ),
+          const Expanded(
+            child: Text(
+              'Tambah Kontak',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0F172A),
+              ),
+            ),
+          ),
+          const SizedBox(width: 48), // Balance for back button
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeroSection() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
+      decoration: const BoxDecoration(
+        color: Color(0xFFEFFCFD),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Avatar Circle with Photo or Initial
+          GestureDetector(
+            onTap: _showPhotoOptions,
+            child: Container(
+              width: 112,
+              height: 112,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF22D3EE).withOpacity(0.15),
+                border: Border.all(color: Colors.white, width: 4),
+                image: _photoBase64 != null
+                    ? DecorationImage(
+                        image: MemoryImage(base64Decode(_photoBase64!)),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: _photoBase64 == null
+                  ? Center(
+                      child: Text(
+                        _getInitials(),
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF22D3EE),
+                        ),
+                      ),
+                    )
+                  : null,
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Add Photo Button
+          GestureDetector(
+            onTap: _showPhotoOptions,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF22D3EE).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF22D3EE).withOpacity(0.3),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    _photoBase64 == null ? Icons.add_a_photo : Icons.edit,
+                    size: 18,
+                    color: const Color(0xFF22D3EE),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _photoBase64 == null ? 'Tambah Foto' : 'Ubah Foto',
+                    style: const TextStyle(
+                      color: Color(0xFF22D3EE),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // First Name
+            _buildInfoField(
+              label: 'Nama Depan',
+              controller: _firstNameController,
+              keyboardType: TextInputType.name,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Nama depan tidak boleh kosong';
+                }
+                return null;
+              },
+              onChanged: (value) => setState(() {}),
+            ),
+            const Divider(height: 32),
+            // Last Name
+            _buildInfoField(
+              label: 'Nama Belakang',
+              controller: _lastNameController,
+              keyboardType: TextInputType.name,
+              onChanged: (value) => setState(() {}),
+            ),
+            const Divider(height: 32),
+            // Phone
+            _buildInfoField(
+              label: 'Telepon',
+              controller: _phoneController,
+              keyboardType: TextInputType.phone,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Telepon tidak boleh kosong';
+                }
+                if (value.length < 10) {
+                  return 'Telepon minimal 10 karakter';
+                }
+                return null;
+              },
+            ),
+            const Divider(height: 32),
+            // Email
+            _buildInfoField(
+              label: 'Email',
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Email tidak boleh kosong';
+                }
+                if (!value.contains('@')) {
+                  return 'Email harus valid';
+                }
+                return null;
+              },
+            ),
+            const Divider(height: 32),
+            // Address
+            _buildInfoField(
+              label: 'Alamat',
+              controller: _addressController,
+              keyboardType: TextInputType.streetAddress,
+              maxLines: 3,
+            ),
+            const Divider(height: 32),
+            // Note
+            _buildInfoField(
+              label: 'Catatan',
+              controller: _noteController,
+              maxLines: 4,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _saveContact,
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          backgroundColor: const Color(0xFF22D3EE),
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          disabledBackgroundColor: Colors.grey[400],
+        ),
+        child: _isLoading
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
+            : const Text(
+                'Simpan Kontak',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildInfoField({
     required String label,
-    required String hint,
+    required TextEditingController controller,
     TextInputType keyboardType = TextInputType.text,
     int maxLines = 1,
     String? Function(String?)? validator,
     void Function(String)? onChanged,
   }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      validator: validator,
-      onChanged: onChanged,
-      maxLines: maxLines,
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: TextStyle(color: Colors.grey[400], fontSize: 16),
-        filled: true,
-        fillColor: Colors.grey[200],
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            color: Color(0xFF94A3B8),
+            fontWeight: FontWeight.w500,
+          ),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          maxLines: maxLines,
+          style: const TextStyle(
+            fontSize: 16,
+            color: Color(0xFF0F172A),
+            fontWeight: FontWeight.w500,
+          ),
+          decoration: InputDecoration(
+            hintText: 'Tambahkan $label',
+            hintStyle: const TextStyle(fontSize: 16, color: Color(0xFF94A3B8)),
+            filled: true,
+            fillColor: const Color(0xFFF8FAFC),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFF22D3EE), width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Colors.red, width: 1),
+            ),
+          ),
+          validator: validator,
+          onChanged: onChanged,
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFF22D3EE), width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.red, width: 1),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
-      ),
+      ],
     );
   }
 }
